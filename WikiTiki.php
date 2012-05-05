@@ -164,7 +164,7 @@ class WikiTiki {
 			'rvprop' => 'content'
 		);
 		$params = http_build_query( $params );
-		$result = $this->get('?'.$params );
+		$result = $this->get( '?'.$params );
 		foreach ( $result['query']['pages'] as $page ) {
 			if ( isset( $page['revisions'][0]['*'] ) ) {
 				return $page['revisions'][0]['*'];
@@ -207,7 +207,7 @@ class WikiTiki {
 	 * @param string $summary The edit summary (optional)
 	 * @return string|false The result from the API (or false)
 	 **/
-	function createPage ( $title, $text, $summary = null ) {
+	function createPage( $title, $text, $summary = null ) {
 		if ( !$this->token ) {
 			$this->token = $this->getEditToken();
 		}
@@ -221,11 +221,60 @@ class WikiTiki {
 			'summary' => $summary,
 			'createonly' => '1'
 		);
-		$result = $this->post('?action=edit&format=php', $params);
+		$result = $this->post( '?action=edit&format=php', $params );
 		if ( isset( $result['edit']['result'] ) ) {
 			return $result['edit']['result'];
 		} else {
 			return false;
 		}
 	}
+	
+    /**
+     * Edit a page on the wiki
+     * @param string $title Title of the page to edit
+     * @param string $text The content of the page to post
+     * @param string $summary The edit summary to use (optional)
+     * @param boolean $minor Whether or not the edit should be marked as minor (optional)
+     * @param boolean $bot Whether or not the edit is by a bot (optional)
+     * @param integer $maxlag Stop whenever replication lag is more than this many seconds (optional)
+     * @return string|false The result from the API (or false)
+     **/
+    function editPage( $title, $text, $summary = '', $minor = false, $bot = true, $maxlag = 5 ) {
+        if ( !$this->token ) {
+			$this->token = $this->getEditToken();
+		}
+        $params = array(
+            'title' => $title,
+            'text' => $text,
+            'token' => $this->token,
+            'summary' => $summary,
+            'maxlag' => $maxlag,
+        );
+        if ( $minor ) {
+        	$params['minor'] = 1;
+        }
+        if ( $bot ) {
+        	$params['bot'] = 1;
+        }
+        $result = $this->post( '?action=edit&format=php', $params );
+        if ( isset( $result['edit']['result'] ) ) {
+			return $result['edit']['result'];
+		} else {
+			return false;
+		}
+    }
+    
+    /**
+     * Determine if an image already exists with the same sha1 hash
+     * @param string $hash The sha1 hash for an image
+     * @return boolean
+     **/
+    function imageExists( $hash ) {
+		$result = $this->get( '?action=query&list=allimages&format=php&aisha1='.$hash );
+		if ( count( $result['query']['allimages'] ) > 0 ) {
+			return true;
+		} else {
+			return false;
+		}
+    }
 }
