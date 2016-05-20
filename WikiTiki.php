@@ -81,7 +81,7 @@ class Http {
 class WikiTiki {
 	private $http, $token;
 	// Use English Wikipedia as the default URL
-	public $url = 'http://en.wikipedia.org/w/api.php';
+	public $url = 'https://en.wikipedia.org/w/api.php';
 
 	/**
 	 * Construct the class instance
